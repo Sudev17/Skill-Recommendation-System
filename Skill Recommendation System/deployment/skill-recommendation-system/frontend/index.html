@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Recommendation System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0A0A0A 0%, #0D0D0D 100%);
+            color: #E5E5E5;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Lunar Navigation menu bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 10, 0.7);
+            padding: 15px 30px;
+            border-bottom: 1px solid rgba(160, 216, 241, 0.2);
+            box-shadow: 0 0 15px rgba(160, 216, 241, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        
+        .navbar-brand {
+            font-size: 2em;
+            font-weight: 700;
+            color: #A0D8F1;
+            text-decoration: none;
+            text-shadow: 0 0 10px rgba(160, 216, 241, 0.7);
+            letter-spacing: 1px;
+        }
+        
+        .navbar-brand:hover {
+            color: #FFD700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-item {
+            margin: 0 15px;
+        }
+        
+        .nav-link {
+            color: #E5E5E5;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: 500;
+            padding: 12px 20px;
+            border-radius: 6px;
+            transition: all 0.4s ease;
+            position: relative;
+            border: 1px solid transparent;
+        }
+        
+        .nav-link:hover {
+            background: rgba(160, 216, 241, 0.1);
+            color: #A0D8F1;
+            border: 1px solid rgba(160, 216, 241, 0.3);
+            box-shadow: 0 0 8px rgba(160, 216, 241, 0.3);
+        }
+        
+        .nav-link.active {
+            background: rgba(160, 216, 241, 0.2);
+            color: #FFD700;
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+        }
+        
+        /* Lunar Space background elements */
+        .star {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 50%;
+            animation: twinkle var(--duration, 5s) infinite ease-in-out;
+            z-index: 1;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        /* Tiny asteroids */
+        .asteroid {
+            position: absolute;
+            background: linear-gradient(45deg, #2a2a2a, #4a4a4a, #2a2a2a);
+            clip-path: polygon(50% 0%, 57% 25%, 90% 30%, 65% 50%, 75% 80%, 50% 70%, 25% 80%, 35% 50%, 10% 30%, 43% 25%);
+            animation: float linear infinite;
+            box-shadow: 0 0 8px rgba(160, 216, 241, 0.3);
+            z-index: 1;
+        }
+        
+        /* Cosmic dust particles */
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, #A0D8F1, #0A0A0A);
+            border-radius: 50%;
+            animation: drift linear infinite;
+            box-shadow: 0 0 6px rgba(160, 216, 241, 0.5);
+            z-index: 1;
+        }
+        
+        /* Distant stars */
+        .distant-star {
+            position: absolute;
+            background-color: #E5E5E5;
+            border-radius: 50%;
+            animation: distant-twinkle var(--duration, 8s) infinite ease-in-out;
+            z-index: 1;
+        }
+        
+        @keyframes distant-twinkle {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* Slow-moving spaceship silhouette */
+        .spaceship {
+            position: absolute;
+            width: 30px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            clip-path: polygon(0% 50%, 20% 30%, 80% 20%, 100% 50%, 80% 80%, 20% 70%);
+            animation: fly linear infinite;
+            z-index: 1;
+        }
+        
+        /* Comet */
+        .comet {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #A0D8F1, #FFD700, transparent);
+            animation: comet linear;
+            box-shadow: 0 0 10px #A0D8F1;
+            z-index: 1;
+        }
+        
+        @keyframes float {
+            from { transform: translate(0, 0) rotate(0deg); }
+            to { transform: translate(calc(100vw - 50px), calc(100vh - 50px)) rotate(360deg); }
+        }
+        
+        @keyframes drift {
+            from { transform: translate(0, 0); }
+            to { transform: translate(calc(100vw - 10px), calc(100vh - 10px)); }
+        }
+        
+        @keyframes fly {
+            from { transform: translate(-100px, 0); }
+            to { transform: translate(calc(100vw + 100px), 0); }
+        }
+        
+        @keyframes comet {
+            from { transform: translateX(-100px) translateY(0); opacity: 1; }
+            to { transform: translateX(100vw) translateY(100px); opacity: 0; }
+        }
+        
+        /* Lunar container */
+        .container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(160, 216, 241, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(160, 216, 241, 0.1);
+            position: relative;
+            z-index: 10;
+            margin: 20px auto;
+            max-width: 900px;
+            min-height: 80vh;
+            animation: float-in 0.8s ease-out;
+        }
+        
+        @keyframes float-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h2, h3 {
+            color: #A0D8F1;
+            text-align: center;
+            text-shadow: 0 0 12px rgba(160, 216, 241, 0.6);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        h2 {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(to right, transparent, #A0D8F1, transparent);
+            border-radius: 50%;
+        }
+        
+        p {
+            color: #E5E5E5;
+            text-align: center;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+        
+        .skill-button {
+            background: rgba(20, 20, 20, 0.8);
+            color: #E5E5E5;
+            border: 1px solid #A0D8F1;
+            padding: 16px 30px;
+            margin: 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 15px rgba(160, 216, 241, 0.2);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+        
+        .skill-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(160, 216, 241, 0.5);
+            background: rgba(30, 30, 30, 0.9);
+            color: #FFD700;
+            border-color: #FFD700;
+        }
+        
+        .skill-button:active {
+            transform: scale(0.98);
+        }
+        
+        .skill-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(160, 216, 241, 0.3), transparent);
+            transition: 0.5s;
+        }
+        
+        .skill-button:hover::before {
+            left: 100%;
+        }
+        
+        .question-card {
+            border: 1px solid rgba(160, 216, 241, 0.3);
+            padding: 30px;
+            margin: 25px 0;
+            border-radius: 12px;
+            background: rgba(15, 15, 15, 0.7);
+            box-shadow: 0 0 20px rgba(160, 216, 241, 0.1);
+            backdrop-filter: blur(5px);
+            animation: card-enter 0.6s ease-out;
+        }
+        
+        @keyframes card-enter {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .option {
+            padding: 18px 20px;
+            margin: 12px 0;
+            background: rgba(25, 25, 25, 0.7);
+            border: 1px solid rgba(160, 216, 241, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #E5E5E5;
+            position: relative;
+            overflow: hidden;
+            font-size: 1.05em;
+            line-height: 1.5;
+        }
+        
+        .option:hover {
+            background: rgba(160, 216, 241, 0.1);
+            transform: translateX(8px);
+            border-color: #A0D8F1;
+            box-shadow: 0 0 12px rgba(160, 216, 241, 0.2);
+        }
+        
+        .option.selected {
+            background: rgba(0, 0, 0, 0.9);
+            color: #FFD700;
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            transform: translateX(10px);
+        }
+        
+        .option.selected::after {
+            content: '✓';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5em;
+            color: #FFD700;
+            font-weight: bold;
+        }
+        
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: 0.5s;
+        }
+        
+        .option:hover::before {
+            left: 100%;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-button {
+            padding: 14px 30px;
+            background: rgba(20, 20, 20, 0.8);
+            color: #E5E5E5;
+            border: 1px solid #A0D8F1;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 12px rgba(160, 216, 241, 0.2);
+            font-size: 16px;
+        }
+        
+        .nav-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 18px rgba(160, 216, 241, 0.4);
+            background: rgba(30, 30, 30, 0.9);
+            color: #FFD700;
+            border-color: #FFD700;
+        }
+        
+        .nav-button:disabled {
+            background: rgba(40, 40, 40, 0.6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: #888888;
+        }
+        
+        .result-card {
+            background: rgba(15, 15, 15, 0.8);
+            border: 1px solid rgba(160, 216, 241, 0.3);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(160, 216, 241, 0.3);
+            backdrop-filter: blur(5px);
+            animation: result-appear 0.8s ease-out;
+        }
+        
+        @keyframes result-appear {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .developer-credit {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(160, 216, 241, 0.1);
+            color: #E5E5E5;
+            font-size: 1.1em;
+            position: relative;
+        }
+        
+        .developer-credit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #A0D8F1, transparent);
+        }
+        
+        /* Chat container styles */
+        #chat-container {
+            display: none;
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid rgba(160, 216, 241, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 22px rgba(160, 216, 241, 0.2);
+            margin-top: 25px;
+            backdrop-filter: blur(8px);
+        }
+        
+        #chat-messages {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(160, 216, 241, 0.2);
+            color: #E5E5E5;
+            height: 350px;
+            overflow-y: auto;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 1.05em;
+            line-height: 1.5;
+        }
+        
+        #user-question {
+            background: rgba(25, 25, 25, 0.8);
+            border: 1px solid rgba(160, 216, 241, 0.2);
+            color: #E5E5E5;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 16px;
+            width: calc(100% - 120px);
+            margin-right: 15px;
+        }
+        
+        #user-question::placeholder {
+            color: #A0A0A0;
+            opacity: 0.7;
+        }
+        
+        #user-question:focus {
+            outline: none;
+            border-color: #A0D8F1;
+            box-shadow: 0 0 12px rgba(160, 216, 241, 0.3);
+        }
+        
+        /* Message styling */
+        .message-enter {
+            animation: message-slide 0.4s ease-out;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            line-height: 1.5;
+        }
+        
+        @keyframes message-slide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* File input styling */
+        input[type="file"] {
+            background: rgba(25, 25, 25, 0.8);
+            border: 1px solid rgba(160, 216, 241, 0.2);
+            color: #E5E5E5;
+            padding: 14px;
+            border-radius: 8px;
+            width: 100%;
+            margin: 15px 0;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="file"]:hover {
+            border-color: #A0D8F1;
+            box-shadow: 0 0 12px rgba(160, 216, 241, 0.2);
+        }
+        
+        input[type="file"]::-webkit-file-upload-button {
+            background: rgba(20, 20, 20, 0.8);
+            color: #E5E5E5;
+            border: 1px solid #A0D8F1;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+        }
+        
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background: rgba(30, 30, 30, 0.9);
+            box-shadow: 0 0 12px rgba(160, 216, 241, 0.3);
+            color: #FFD700;
+            border-color: #FFD700;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 15, 15, 0.6);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2a2a2a 0%, #A0D8F1 100%);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #A0D8F1 0%, #FFD700 100%);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h2 {
+                font-size: 2em;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.8em;
+                margin-bottom: 10px;
+            }
+            
+            .nav-menu {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .nav-item {
+                margin: 5px;
+            }
+            
+            .skill-button {
+                padding: 14px 25px;
+                margin: 10px 5px;
+                font-size: 15px;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-button {
+                width: 100%;
+            }
+            
+            #user-question {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+            
+            #user-question {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Menu Bar -->
+    <nav class="navbar">
+        <a href="#" class="navbar-brand" onclick="showHomePage(); return false;">Skill Recommendation System</a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" id="home-link" onclick="showHomePage(); return false;">Home</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" id="skill-link" onclick="showSkillAssessment(); return false;">Skill Assessment</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" id="resume-link" onclick="showResumeAnalysis(); return false;">Resume Analysis</a>
+            </li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <div id="mode-selection" style="text-align: center; margin: 40px 0; display: none;">
+            <h2>Select Mode</h2>
+            <button class="skill-button" onclick="showSkillAssessment()" style="margin: 15px;">Skill Assessment</button>
+            <button class="skill-button" onclick="showResumeAnalysis()" style="margin: 15px;">Resume Analysis</button>
+        </div>
+        
+        <div id="app">
+            <!-- Content will be loaded here by JavaScript -->
+        </div>
+        
+        <!-- Resume Analysis Section -->
+        <div id="resume-analysis" style="display: none;">
+            <h2>Resume Analysis</h2>
+            
+            <div style="margin: 25px 0;">
+                <input type="file" id="resumeFile" accept=".pdf,.docx" style="margin: 15px 0;">
+                <button class="skill-button" onclick="uploadResume()" style="display: block; margin: 15px auto; padding: 15px 35px;">Upload Resume</button>
+            </div>
+            
+            <div id="chat-container">
+                <h3 style="text-align: center; margin-bottom: 20px;">Resume Analysis Chat</h3>
+                <div id="chat-messages"></div>
+                <div style="display: flex; align-items: center;">
+                    <input type="text" id="user-question" placeholder="Ask a question about your resume...">
+                    <button class="skill-button" onclick="askQuestion()" style="border-radius: 8px; padding: 14px 25px; margin: 0;">Ask</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="developer-credit">
+            <p>Developed by Sudev Basti</p>
+        </div>
+    </div>
+
+    <script>
+        // Create enhanced lunar background with cosmic elements
+        function createSpaceBackground() {
+            const body = document.body;
+            
+            // Create stars
+            const starCount = 100;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size
+                const size = 1 + Math.random() * 2;
+                
+                // Random animation duration
+                const duration = 3 + Math.random() * 7;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.setProperty('--duration', `${duration}s`);
+                
+                body.appendChild(star);
+            }
+            
+            // Create distant stars
+            const distantStarCount = 60;
+            for (let i = 0; i < distantStarCount; i++) {
+                const distantStar = document.createElement('div');
+                distantStar.classList.add('distant-star');
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Small size
+                const size = 0.5 + Math.random() * 1.5;
+                
+                // Random animation duration
+                const duration = 5 + Math.random() * 10;
+                
+                distantStar.style.left = `${x}%`;
+                distantStar.style.top = `${y}%`;
+                distantStar.style.width = `${size}px`;
+                distantStar.style.height = `${size}px`;
+                distantStar.style.setProperty('--duration', `${duration}s`);
+                
+                body.appendChild(distantStar);
+            }
+            
+            // Create asteroids
+            const asteroidCount = 12;
+            for (let i = 0; i < asteroidCount; i++) {
+                const asteroid = document.createElement('div');
+                asteroid.classList.add('asteroid');
+                
+                // Random position and size
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const size = 10 + Math.random() * 25;
+                
+                // Random animation
+                const duration = 40 + Math.random() * 80;
+                const delay = Math.random() * 30;
+                
+                asteroid.style.left = `${x}%`;
+                asteroid.style.top = `${y}%`;
+                asteroid.style.width = `${size}px`;
+                asteroid.style.height = `${size}px`;
+                asteroid.style.animationDuration = `${duration}s`;
+                asteroid.style.animationDelay = `${delay}s`;
+                
+                body.appendChild(asteroid);
+            }
+            
+            // Create cosmic dust particles
+            const particleCount = 30;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random position and size
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const size = 2 + Math.random() * 6;
+                
+                // Random animation
+                const duration = 50 + Math.random() * 100;
+                const delay = Math.random() * 40;
+                
+                particle.style.left = `${x}%`;
+                particle.style.top = `${y}%`;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
+                
+                body.appendChild(particle);
+            }
+            
+            // Create slow-moving spaceship silhouette
+            const spaceship = document.createElement('div');
+            spaceship.classList.add('spaceship');
+            
+            // Position at top
+            const y = 10 + Math.random() * 30;
+            const duration = 30 + Math.random() * 50;
+            const delay = Math.random() * 20;
+            
+            spaceship.style.top = `${y}%`;
+            spaceship.style.animationDuration = `${duration}s`;
+            spaceship.style.animationDelay = `${delay}s`;
+            
+            body.appendChild(spaceship);
+            
+            // Create comets
+            const cometCount = 3;
+            for (let i = 0; i < cometCount; i++) {
+                const comet = document.createElement('div');
+                comet.classList.add('comet');
+                
+                // Random position
+                const y = Math.random() * 100;
+                const length = 50 + Math.random() * 100;
+                
+                // Random animation
+                const duration = 2 + Math.random() * 5;
+                const delay = 10 + Math.random() * 30;
+                
+                comet.style.top = `${y}%`;
+                comet.style.width = `${length}px`;
+                comet.style.animationDuration = `${duration}s`;
+                comet.style.animationDelay = `${delay}s`;
+                
+                body.appendChild(comet);
+                
+                // Remove comet after animation completes
+                setTimeout(() => {
+                    if (comet.parentNode) {
+                        comet.parentNode.removeChild(comet);
+                    }
+                }, (duration + delay) * 1000);
+            }
+            
+            // Periodically create new comets
+            setInterval(() => {
+                const comet = document.createElement('div');
+                comet.classList.add('comet');
+                
+                // Random position
+                const y = Math.random() * 100;
+                const length = 50 + Math.random() * 100;
+                
+                // Random animation
+                const duration = 2 + Math.random() * 5;
+                
+                comet.style.top = `${y}%`;
+                comet.style.width = `${length}px`;
+                comet.style.animationDuration = `${duration}s`;
+                
+                body.appendChild(comet);
+                
+                // Remove comet after animation completes
+                setTimeout(() => {
+                    if (comet.parentNode) {
+                        comet.parentNode.removeChild(comet);
+                    }
+                }, duration * 1000);
+            }, 8000);
+        }
+        
+        // Initialize space background when page loads
+        window.addEventListener('load', createSpaceBackground);
+        
+        // App state
+        let currentState = 'skillSelection';
+        let selectedSkill = '';
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let answers = [];
+
+        // DOM elements
+        const appElement = document.getElementById('app');
+
+        // Initialize the app
+        function initApp() {
+            // Show mode selection by default
+            document.getElementById('mode-selection').style.display = 'block';
+            document.getElementById('app').style.display = 'none';
+            updateActiveLink('home');
+        }
+        
+        // Update active link in navbar
+        function updateActiveLink(activeId) {
+            // Remove active class from all links
+            document.getElementById('home-link').classList.remove('active');
+            document.getElementById('skill-link').classList.remove('active');
+            document.getElementById('resume-link').classList.remove('active');
+            
+            // Add active class to the current link
+            if (activeId) {
+                document.getElementById(activeId + '-link').classList.add('active');
+            }
+        }
+        
+        // Show home page
+        function showHomePage() {
+            // Update active link
+            updateActiveLink('home');
+            
+            // Show mode selection
+            document.getElementById('mode-selection').style.display = 'block';
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('resume-analysis').style.display = 'none';
+        }
+        
+        // Show skill assessment mode
+        function showSkillAssessment() {
+            // Update active link
+            updateActiveLink('skill');
+            
+            document.getElementById('mode-selection').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            document.getElementById('resume-analysis').style.display = 'none';
+            loadSkillSelection();
+        }
+        
+        // Show resume analysis mode
+        function showResumeAnalysis() {
+            // Update active link
+            updateActiveLink('resume');
+            
+            document.getElementById('mode-selection').style.display = 'none';
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('resume-analysis').style.display = 'block';
+        }
+
+        // Load skill selection screen
+        function loadSkillSelection() {
+            currentState = 'skillSelection';
+            fetch('/api/skills')
+                .then(response => response.json())
+                .then(data => {
+                    const skillsHtml = data.skills.map(skill => 
+                        `<button class="skill-button" onclick="selectSkill('${skill}')">${skill}</button>`
+                    ).join('');
+                    
+                    // Store skills for later use
+                    window.availableSkills = data.skills;
+            
+                    appElement.innerHTML = `
+                        <h2>Skill Assessment</h2>
+                        <div style="text-align: center; margin: 25px 0; max-width: 700px; margin: 25px auto;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; justify-items: center;">
+                                ${data.skills.map(skill => 
+                                    `<div style="display: flex; align-items: center; justify-content: flex-start; width: 280px; background: rgba(30, 30, 60, 0.6); padding: 15px; border-radius: 10px; border: 1px solid rgba(100, 200, 255, 0.2);">
+                                        <input type="checkbox" id="${skill.replace(/[^a-zA-Z0-9]/g, '_')}" value="${skill}" style="margin-right: 15px; transform: scale(1.7); cursor: pointer;">
+                                        <label for="${skill.replace(/[^a-zA-Z0-9]/g, '_')}" style="font-size: 17px; cursor: pointer; color: #e0f0ff;">${skill}</label>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin: 25px 0;">
+                            <label for="questionCount" style="font-size: 18px; margin-right: 15px; color: #e0f0ff;">Number of Questions (5-25): </label>
+                            <input type="number" id="questionCount" min="5" max="25" value="10" style="width: 70px; padding: 10px; font-size: 16px; background: rgba(30, 30, 60, 0.8); border: 1px solid rgba(100, 200, 255, 0.3); color: #e0f0ff; border-radius: 6px;">
+                        </div>
+                        <div style="text-align: center;">
+                            <button class="skill-button" onclick="startAssessment()" style="padding: 16px 35px; font-size: 18px;">Start Assessment</button>
+                            <button class="skill-button" onclick="showHomePage()" style="padding: 16px 35px; font-size: 18px; margin-left: 20px;">Back to Home</button>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    appElement.innerHTML = `<p style="color: #ff9999; text-align: center; font-size: 18px;">Error loading skills: ${error.message}</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="skill-button" onclick="showHomePage()" style="padding: 16px 35px; font-size: 18px;">Back to Home</button>
+                    </div>`;
+                });
+        }
+
+        // Start assessment with selected skills and question count
+        function startAssessment() {
+            // Get all checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const selectedSkills = Array.from(checkboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+            
+            if (selectedSkills.length === 0) {
+                alert('Please select at least one skill');
+                return;
+            }
+            
+            const questionCount = parseInt(document.getElementById('questionCount').value);
+            
+            if (questionCount < 5 || questionCount > 25) {
+                alert('Please select a question count between 5 and 25');
+                return;
+            }
+            
+            // For multiple skills, we'll fetch questions for each and combine them
+            const fetchPromises = selectedSkills.map(skill => 
+                fetch('/api/questions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        skill: skill,
+                        count: Math.ceil(questionCount / selectedSkills.length)
+                    })
+                }).then(response => response.json())
+            );
+            
+            Promise.all(fetchPromises)
+                .then(results => {
+                    // Combine questions from all selected skills
+                    questions = results.flatMap(result => result.questions);
+                    // Shuffle questions
+                    questions = questions.sort(() => Math.random() - 0.5);
+                    // Limit to requested count
+                    questions = questions.slice(0, questionCount);
+                    
+                    selectedSkill = selectedSkills.join(', ');
+                    currentQuestionIndex = 0;
+                    answers = [];
+                    loadQuestion();
+                })
+                .catch(error => {
+                    appElement.innerHTML = `<p style="color: #ff9999; text-align: center; font-size: 18px;">Error loading questions: ${error.message}</p>`;
+                });
+        }
+
+        // Load current question
+        function loadQuestion() {
+            if (questions.length === 0) {
+                appElement.innerHTML = `<p style="color: #ff9999; text-align: center; font-size: 18px;">No questions available for this skill.</p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="skill-button" onclick="showHomePage()" style="padding: 16px 35px; font-size: 18px;">Back to Home</button>
+                </div>`;
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            // Use actual options from the API response
+            const optionsHtml = question.options.map((option, index) => {
+                // Check if this option was previously selected
+                const isSelected = answers[currentQuestionIndex] && answers[currentQuestionIndex].selectedOption === index;
+                const selectedClass = isSelected ? ' selected' : '';
+                return `<div class="option${selectedClass}" onclick="selectOption(${index})">${String.fromCharCode(65 + index)}. ${option}</div>`;
+            }).join('');
+
+            appElement.innerHTML = `
+                <h2>${selectedSkill} Assessment</h2>
+                <p style="text-align: center; font-size: 18px;">Question ${currentQuestionIndex + 1} of ${questions.length}</p>
+                
+                <div class="question-card">
+                    <h3 style="font-size: 1.4em; margin-bottom: 20px; color: #e0f0ff;">${question.question.replace(/Q\d+ for [^:]+: /, '')}</h3>
+                    <div>${optionsHtml}</div>
+                </div>
+                
+                <div class="nav-buttons">
+                    <button class="nav-button" onclick="previousQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>Previous</button>
+                    <button class="nav-button" onclick="nextQuestion()" ${!answers[currentQuestionIndex] ? 'disabled' : ''}>
+                        ${currentQuestionIndex === questions.length - 1 ? 'Submit' : 'Next'}
+                    </button>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="skill-button" onclick="showHomePage()" style="padding: 16px 35px; font-size: 18px;">Back to Home</button>
+                </div>
+            `;
+        }
+
+        // Select an option
+        function selectOption(optionIndex) {
+            // Remove selected class from all options
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selected class to the clicked option
+            event.currentTarget.classList.add('selected');
+            
+            // Store the answer with question details for better analysis
+            // Fix: Store the actual skill for each question instead of just the first one
+            answers[currentQuestionIndex] = {
+                questionId: questions[currentQuestionIndex].question_id,
+                question: questions[currentQuestionIndex].question,
+                selectedOption: optionIndex,
+                correct: optionIndex === questions[currentQuestionIndex].correct_answer,
+                skill: questions[currentQuestionIndex].skill // Use the actual skill from the question
+            };
+            
+            // Enable the next button by updating the button state directly
+            const navButtons = document.querySelectorAll('.nav-button');
+            if (navButtons.length > 1) {
+                // Enable the next/submit button
+                navButtons[1].disabled = false;
+            }
+        }
+        
+        // Update navigation buttons state
+        function updateNavigationButtons() {
+            const nextButton = document.querySelector('.nav-button:not(:disabled)');
+            if (nextButton && answers[currentQuestionIndex]) {
+                // Find the next button specifically
+                const navButtons = document.querySelectorAll('.nav-button');
+                if (navButtons.length > 1) {
+                    const nextButton = navButtons[1]; // Second button should be Next/Submit
+                    nextButton.disabled = false;
+                }
+            }
+        }
+
+        // Go to previous question
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        // Go to next question or submit
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                submitAssessment();
+            }
+        }
+
+        // Submit assessment and show results
+        function submitAssessment() {
+            fetch('/api/evaluate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    answers: answers,
+                    skill: selectedSkill,
+                    api_provider: 'nvidia' // Always use NVIDIA API
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                appElement.innerHTML = `
+                    <h2>Assessment Results</h2>
+                    <div class="result-card">
+                        <h3 style="font-size: 2em; margin-bottom: 20px; color: #e0f0ff;">Your Score: ${data.score.toFixed(1)}%</h3>
+                        <p style="font-size: 1.2em; margin-bottom: 15px;">Correct Answers: ${data.correct_answers} / ${data.total_questions}</p>
+                        <p style="font-size: 1.1em; line-height: 1.6;"><strong style="color: #e0f0ff;">Recommendation:</strong> ${data.recommendation}</p>
+                    </div>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="skill-button" onclick="loadSkillSelection()" style="padding: 16px 35px; font-size: 18px;">Test Another Skill</button>
+                        <button class="skill-button" onclick="showHomePage()" style="padding: 16px 35px; font-size: 18px; margin-left: 20px;">Back to Home</button>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                appElement.innerHTML = `<p style="color: #ff9999; text-align: center; font-size: 18px;">Error submitting assessment: ${error.message}</p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="skill-button" onclick="showHomePage()" style="padding: 16px 35px; font-size: 18px;">Back to Home</button>
+                </div>`;
+            });
+        }
+
+        // Upload resume function
+        function uploadResume() {
+            const fileInput = document.getElementById('resumeFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a resume file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('resume', file);
+            
+            // Show loading message
+            addChatMessage('bot', 'Analyzing your resume...');
+            
+            // Make sure chat container is visible
+            document.getElementById('chat-container').style.display = 'block';
+            
+            fetch('/api/upload-resume', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    addChatMessage('bot', 'Error: ' + data.error);
+                    return;
+                }
+                
+                // Store full resume text for later use (not the truncated preview)
+                window.resumeText = data.resume_text;
+                
+                // Show chat container
+                document.getElementById('chat-container').style.display = 'block';
+                
+                // Add initial analysis message
+                addChatMessage('bot', 'I\'ve analyzed your resume. I found the following skills: ' + 
+                    (data.skills && data.skills.length > 0 ? 
+                        data.skills.map(s => s.name).join(', ') : 
+                        'No specific skills identified'));
+                
+                // Generate resume-based questions in interactive assessment format
+                return fetch('/api/generate-resume-questions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        resume_text: data.resume_text,
+                        api_provider: 'nvidia'
+                    })
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.questions && data.questions.length > 0) {
+                    // Initialize interactive assessment
+                    window.assessmentQuestions = data.questions.slice(0, 10);
+                    window.assessmentAnswers = new Array(10).fill('');
+                    window.currentAssessmentQuestion = 0;
+                    
+                    // Start the interactive assessment
+                    showNextAssessmentQuestion();
+                } else {
+                    addChatMessage('bot', 'Could not generate assessment questions. Please try again.');
+                }
+            })
+            .catch(error => {
+                addChatMessage('bot', 'Error analyzing resume: ' + error.message);
+            });
+        }
+        
+        // Show next assessment question
+        function showNextAssessmentQuestion() {
+            if (window.currentAssessmentQuestion < window.assessmentQuestions.length) {
+                const question = window.assessmentQuestions[window.currentAssessmentQuestion];
+                addChatMessage('bot', `Question ${window.currentAssessmentQuestion + 1}: ${question}`);
+                addChatMessage('bot', 'Please answer the above question:');
+            } else {
+                // Assessment complete, analyze responses
+                submitAssessmentResponses();
+            }
+        }
+        
+        // Submit assessment responses for analysis
+        function submitAssessmentResponses() {
+            // Combine questions and answers
+            const questionsAndAnswers = window.assessmentQuestions.map((question, index) => ({
+                question: question,
+                answer: window.assessmentAnswers[index] || 'No answer provided'
+            }));
+            
+            addChatMessage('bot', 'Analyzing your responses...');
+            
+            fetch('/api/analyze-resume-responses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    resume_text: window.resumeText,
+                    questions_and_answers: questionsAndAnswers,
+                    api_provider: 'nvidia'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    addChatMessage('bot', 'Error: ' + data.error);
+                } else {
+                    addChatMessage('bot', 'Assessment Complete!\n\n' + data.feedback);
+                }
+            })
+            .catch(error => {
+                addChatMessage('bot', 'Error analyzing responses: ' + error.message);
+            });
+        }
+        
+        // Ask a question function (modified for interactive assessment)
+        function askQuestion() {
+            const questionInput = document.getElementById('user-question');
+            const answer = questionInput.value.trim();
+            
+            if (!answer) return;
+            
+            // Check if we're in interactive assessment mode
+            if (window.assessmentQuestions && window.currentAssessmentQuestion < window.assessmentQuestions.length) {
+                // Store the answer
+                window.assessmentAnswers[window.currentAssessmentQuestion] = answer;
+                
+                // Add user answer to chat
+                addChatMessage('user', answer);
+                questionInput.value = '';
+                
+                // Move to next question
+                window.currentAssessmentQuestion++;
+                showNextAssessmentQuestion();
+            } else {
+                // Regular question mode (fallback)
+                addChatMessage('user', answer);
+                questionInput.value = '';
+                
+                // Call backend API for resume-based question answering
+                addChatMessage('bot', 'Thinking...');
+                
+                fetch('/api/answer-resume-question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        resume_text: window.resumeText,
+                        question: answer,
+                        api_provider: 'nvidia'
+                    })
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    // Remove the "Thinking..." message
+                    const chatMessages = document.getElementById('chat-messages');
+                    if (chatMessages.lastChild) {
+                        chatMessages.removeChild(chatMessages.lastChild);
+                    }
+                    
+                    if (data.error) {
+                        addChatMessage('bot', 'Error: ' + data.error);
+                    } else {
+                        addChatMessage('bot', data.answer || 'I couldn\'t generate a specific answer to that question.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    // Remove the "Thinking..." message
+                    const chatMessages = document.getElementById('chat-messages');
+                    if (chatMessages.lastChild) {
+                        chatMessages.removeChild(chatMessages.lastChild);
+                    }
+                    
+                    addChatMessage('bot', 'Error processing your question: ' + error.message);
+                });
+            }
+        }
+        
+        // Add message to chat
+        function addChatMessage(sender, message) {
+            const chatMessages = document.getElementById('chat-messages');
+            
+            // Check if this is updating the last message (for "Thinking...")
+            if (message === 'Thinking...' && chatMessages.lastChild) {
+                chatMessages.lastChild.innerHTML = `<strong>Assistant:</strong> ${message}`;
+                chatMessages.lastChild.style.backgroundColor = 'rgba(245, 245, 220, 0.1)';
+                chatMessages.lastChild.style.color = '#f5f5dc';
+                return;
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.style.marginBottom = '12px';
+            messageDiv.style.padding = '14px';
+            messageDiv.style.borderRadius = '10px';
+            messageDiv.classList.add('message-enter');
+            messageDiv.style.lineHeight = '1.5';
+            messageDiv.style.whiteSpace = 'pre-line'; // Preserve line breaks
+            
+            if (sender === 'user') {
+                messageDiv.style.backgroundColor = 'rgba(245, 245, 220, 0.15)';
+                messageDiv.style.color = '#f5f5dc';
+                messageDiv.style.textAlign = 'right';
+                messageDiv.style.border = '1px solid rgba(245, 245, 220, 0.3)';
+                messageDiv.innerHTML = `<strong>You:</strong>\n${message}`;
+            } else {
+                messageDiv.style.backgroundColor = 'rgba(30, 30, 30, 0.8)';
+                messageDiv.style.color = '#f5f5dc';
+                messageDiv.style.border = '1px solid rgba(245, 245, 220, 0.2)';
+                messageDiv.innerHTML = `<strong style="color: #f5f5dc;">Assistant:</strong>\n${message}`;
+                
+                // Special styling for "Thinking..." message
+                if (message === 'Thinking...') {
+                    messageDiv.style.backgroundColor = 'rgba(245, 245, 220, 0.1)';
+                    messageDiv.style.color = '#f5f5dc';
+                }
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Initialize the app when the page loads
+        window.onload = function() {
+            createSpaceBackground();
+            initApp();
+        };
+    </script>
+</body>
+</html>
